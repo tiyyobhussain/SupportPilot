@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-pilot-prod
+    restart: always
+    environment:
+      - N8N_HOST=pilot.auraaico.com
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://pilot.auraaico.com/
+      - GENERIC_TIMEZONE=UTC
+      # PRODUCTION METRICS & PERFORMANCE TUNING
+      - N8N_PAYLOAD_SIZE_MAX=268435456 # 256MB limit: keeps n8n stable during heavy client document indexing
+      - EXECUTIONS_TIMEOUT=3600       # 1 hour absolute safety net loop timeout 
+      - EXECUTIONS_DATA_PRUNE=true    # Automatically prevents your server hard drive from filling up
+      - EXECUTIONS_DATA_MAX_AGE=168   # Deletes raw execution logs older than 7 days
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  caddy_data:
+  caddy_config:
+  n8n_data:

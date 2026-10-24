@@ -1,0 +1,244 @@
+/* ==========================================================================
+   SupportPilot Chatbot Stylesheet (SupportPilot_CB_Main.css)
+   ========================================================================== */
+
+:root {
+  /* Dynamic Theme Color Variables (Easily customizable) */
+  --sp-theme-color: #8B1E3F;           /* Primary Theme Color (Burgundy/Crimson) */
+  --sp-theme-color-hover: #721632;     /* Darker shade for hover state */
+  --sp-theme-color-light: #FBF0F4;     /* Very soft tint if needed */
+  
+  /* General Layout Variables */
+  --sp-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --sp-window-width: 380px;
+  --sp-window-height: 580px;
+  --sp-border-radius: 16px;
+  --sp-bg-light: #F9FAFB;
+  --sp-border-color: #E5E7EB;
+  --sp-text-dark: #1F2937;
+}
+
+#sp-chat-widget {
+  font-family: var(--sp-font-family);
+  z-index: 999999;
+}
+
+/* Floating Toggle Button */
+#sp-chat-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--sp-theme-color);
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+#sp-chat-toggle:hover {
+  transform: scale(1.05);
+  background: var(--sp-theme-color-hover);
+}
+
+/* Chat Window Box */
+#sp-chat-window {
+  position: fixed;
+  bottom: 92px;
+  right: 24px;
+  width: var(--sp-window-width);
+  height: var(--sp-window-height);
+  max-height: calc(100vh - 120px);
+  background: #FFFFFF;
+  border-radius: var(--sp-border-radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--sp-border-color);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#sp-chat-window.sp-hidden {
+  display: none;
+}
+
+/* Header */
+.sp-chat-header {
+  background: var(--sp-theme-color);
+  color: #FFFFFF;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sp-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sp-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #FFFFFF;
+}
+
+.sp-subtitle {
+  font-size: 11px;
+  margin: 2px 0 0 0;
+  opacity: 0.8;
+}
+
+.sp-close-btn {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.sp-close-btn:hover { 
+  opacity: 1; 
+}
+
+/* Message Feed */
+#sp-chat-messages {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--sp-bg-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sp-message {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sp-message.sp-bot {
+  background: #FFFFFF;
+  color: var(--sp-text-dark);
+  border: 1px solid var(--sp-border-color);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.sp-message.sp-user {
+  background: var(--sp-theme-color);
+  color: #FFFFFF;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+/* Input Footer Bar */
+.sp-chat-input-container {
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-top: 1px solid var(--sp-border-color);
+}
+
+.sp-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #F3F4F6;
+  border: 1px solid var(--sp-border-color);
+  border-radius: 24px;
+  padding: 4px 6px 4px 14px;
+}
+
+.sp-input-wrapper input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  outline: none;
+  color: var(--sp-text-dark);
+  font-family: inherit;
+}
+
+#sp-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sp-theme-color);
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+#sp-send-btn:hover { 
+  background: var(--sp-theme-color-hover);
+  opacity: 0.9; 
+}
+
+.sp-footer-branding {
+  text-align: center;
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 8px;
+}
+
+/* Animated Pulse Dots Typing Indicator */
+.sp-typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+}
+
+.sp-typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background-color: var(--sp-theme-color);
+  border-radius: 50%;
+  display: inline-block;
+  animation: spPulseDots 1.4s infinite ease-in-out both;
+}
+
+.sp-typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.sp-typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes spPulseDots {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}

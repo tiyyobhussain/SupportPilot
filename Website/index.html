@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SupportPilot | Autonomous AI Customer Support & RAG Infrastructure</title>
+  <meta name="description" content="Automate 70%+ of routine customer inquiries across web chat and inbound email tickets with sub-second RAG retrieval." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#1e1b4b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Chatbot CSS (same folder) -->
+  <link rel="stylesheet" href="SupportPilot_CB_Main.css">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* ==========================================================================
+       SupportPilot Chatbot Embedded Styles (Guarantees styling in all environments)
+       ========================================================================== */
+    :root {
+      --sp-theme-color: #4f46e5;
+      --sp-theme-color-hover: #4338ca;
+      --sp-theme-color-light: #eef2ff;
+      --sp-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --sp-window-width: 380px;
+      --sp-window-height: 560px;
+      --sp-border-radius: 16px;
+      --sp-bg-light: #f8fafc;
+      --sp-border-color: #e2e8f0;
+      --sp-text-dark: #0f172a;
+    }
+
+    #sp-chat-widget {
+      font-family: var(--sp-font-family);
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999999;
+    }
+
+    #sp-chat-toggle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.45);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #sp-chat-toggle:hover {
+      transform: scale(1.06);
+      background: var(--sp-theme-color-hover);
+      box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55);
+    }
+
+    #sp-chat-window {
+      position: fixed;
+      bottom: 96px;
+      right: 24px;
+      width: var(--sp-window-width);
+      height: var(--sp-window-height);
+      max-height: calc(100vh - 120px);
+      background: #ffffff;
+      border-radius: var(--sp-border-radius);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--sp-border-color);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 999999;
+    }
+
+    #sp-chat-window.sp-hidden {
+      display: none !important;
+    }
+
+    .sp-chat-header {
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sp-header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sp-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sp-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .sp-subtitle {
+      font-size: 11px;
+      margin: 3px 0 0 0;
+      opacity: 0.85;
+      color: #e0e7ff;
+    }
+
+    .sp-close-btn {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.85;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .sp-close-btn:hover {
+      opacity: 1;
+    }
+
+    #sp-chat-messages {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      background: var(--sp-bg-light);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sp-message {
+      max-width: 84%;
+      padding: 11px 15px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .sp-message.sp-bot {
+      background: #ffffff;
+      color: var(--sp-text-dark);
+      border: 1px solid var(--sp-border-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .sp-message.sp-user {
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.25);
+    }
+
+    .sp-chat-input-container {
+      padding: 12px 16px;
+      background: #ffffff;
+      border-top: 1px solid var(--sp-border-color);
+    }
+
+    .sp-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid var(--sp-border-color);
+      border-radius: 24px;
+      padding: 4px 6px 4px 14px;
+    }
+
+    .sp-input-wrapper input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 13.5px;
+      outline: none;
+      color: var(--sp-text-dark);
+      font-family: inherit;
+    }
+
+    #sp-send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    #sp-send-btn:hover {
+      background: var(--sp-theme-color-hover);
+    }
+
+    .sp-footer-branding {
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 8px;
+    }
+
+    .sp-typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .sp-typing-indicator span {
+      width: 6px;
+      height: 6px;
+      background-color: var(--sp-theme-color);
+      border-radius: 50%;
+      display: inline-block;
+      animation: spPulseDots 1.4s infinite ease-in-out both;
+    }
+
+    .sp-typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .sp-typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes spPulseDots {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1.1); opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      #sp-chat-window {
+        width: calc(100vw - 32px);
+        right: 16px;
+        bottom: 84px;
+      }
+      #sp-chat-widget {
+        bottom: 16px;
+        right: 16px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased selection:bg-brand-500 selection:text-white relative">
+
+  <!-- Section 1: Navigation Bar -->
+  <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center font-bold text-white shadow-lg shadow-brand-500/30">
+          SP
+        </div>
+        <span class="text-xl font-bold tracking-tight text-white">Support<span class="text-brand-500">Pilot</span></span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="#features" class="hover:text-white transition">Features</a>
+        <a href="how-it-works.html" class="hover:text-white transition">How It Works</a>
+        <a href="contact.html" class="hover:text-white transition">Contact</a>
+      </nav>
+
+      <div class="hidden md:flex items-center gap-4">
+        <a href="contact.html" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 shadow-md shadow-brand-600/30 transition">
+          Start Free Pilot
+        </a>
+      </div>
+
+      <!-- Mobile Menu Trigger -->
+      <button id="mobileMenuBtn" class="md:hidden p-2 text-slate-400 hover:text-white focus:outline-none" aria-label="Toggle menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobileMenu" class="hidden md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-3 pb-5 space-y-3">
+      <a href="#features" class="block text-slate-300 hover:text-white py-1">Features</a>
+      <a href="how-it-works.html" class="block text-slate-300 hover:text-white py-1">How It Works</a>
+      <a href="contact.html" class="block text-slate-300 hover:text-white py-1">Contact</a>
+      <a href="contact.html" class="block text-center mt-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-600">Start Free Pilot</a>
+    </div>
+  </header>
+
+  <!-- Section 2: Hero -->
+  <section class="relative pt-20 pb-16 md:pt-28 md:pb-24 overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.22),rgba(255,255,255,0))] pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      
+      <!-- Badge -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-brand-300 text-xs sm:text-sm font-medium mb-8">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Production-Grade Autonomous Support Infrastructure
+      </div>
+
+      <!-- Headline -->
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-tight sm:leading-none">
+        Cut Support Backlog by 70% <br class="hidden sm:block" />
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-brand-300 via-indigo-200 to-white">
+          Without Losing the Human Touch.
+        </span>
+      </h1>
+
+      <!-- Sub-headline -->
+      <p class="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        SupportPilot trains on your company documentation in minutes to resolve customer questions across live chat and email—escalating complex edge cases directly to your phone via Telegram.
+      </p>
+
+      <!-- CTA Buttons: Fixed with proper relative local links -->
+      <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="contact.html" class="w-full sm:w-auto px-8 py-3.5 rounded-lg text-base font-semibold text-white bg-brand-600 hover:bg-brand-500 shadow-xl shadow-brand-600/30 transition flex items-center justify-center gap-2">
+          <span>Get a Free Custom Pilot</span>
+          <span>&rarr;</span>
+        </a>
+        <a href="how-it-works.html" class="w-full sm:w-auto px-8 py-3.5 rounded-lg text-base font-semibold text-slate-200 bg-slate-900 border border-slate-700/80 hover:bg-slate-800 transition flex items-center justify-center">
+          See Architecture
+        </a>
+      </div>
+
+      <!-- Social Proof Bar -->
+      <div class="mt-16 pt-10 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
+          <div class="text-2xl font-bold text-white">&lt; 1.2s</div>
+          <div class="text-sm text-slate-400 mt-1">Average Response Time</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
+          <div class="text-2xl font-bold text-white">Zero</div>
+          <div class="text-sm text-slate-400 mt-1">Hallucination Guardrails</div>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/60">
+          <div class="text-2xl font-bold text-white">100%</div>
+          <div class="text-sm text-slate-400 mt-1">Vectorized Doc Matching</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Live Interactive Demo Callout -->
+  <section class="py-12 bg-slate-900/60 border-y border-slate-800/80">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="p-8 rounded-2xl bg-gradient-to-r from-brand-900/40 to-slate-900 border border-brand-500/30 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="space-y-2">
+          <div class="inline-flex items-center gap-2 text-xs font-semibold tracking-wider text-brand-400 uppercase">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Live Interactive Demo
+          </div>
+          <h2 class="text-2xl font-bold text-white">Try It Live on This Page</h2>
+          <p class="text-slate-300 text-sm sm:text-base max-w-xl">
+            The widget at the bottom-right is a live instance of SupportPilot loaded with our product manual. Ask it about our response speed, supported file types, or how quota tracking works.
+          </p>
+        </div>
+        <div class="flex-shrink-0">
+          <!-- Button directly triggers the chat widget window -->
+          <button type="button" onclick="spOpenChat()" class="px-6 py-3.5 rounded-lg text-sm font-semibold bg-brand-500 hover:bg-brand-600 text-white shadow-lg transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <span>Open Chat Widget &darr;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 4: Three Core Capabilities -->
+  <section id="features" class="py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Engineered for Accuracy & Scalability</h2>
+        <p class="mt-4 text-slate-400">Purpose-built for lean operations that demand enterprise reliability without the operational overhead.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Card 1 -->
+        <div class="p-8 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-brand-500/40 transition flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Self-Learning Knowledge Engine</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Upload your PDF guides, FAQs, or help-desk articles. SupportPilot indexes and vectorizes your data using high-speed vector embeddings, ensuring the AI only answers using your verified facts.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-800 text-xs font-medium text-brand-400">Zero Hallucinations Guarantee &rarr;</div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="p-8 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-brand-500/40 transition flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Dual-Channel Automation</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              One unified AI engine answers web visitors on your storefront and automatically drafts or sends replies to incoming support email tickets with deep contextual memory.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-800 text-xs font-medium text-indigo-400">Chat Widget + Inbound Email &rarr;</div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="p-8 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-brand-500/40 transition flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-3">Smart Quotas & Escalations</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Set monthly limits to control API consumption. When an unresolved query or VIP issue occurs, SupportPilot alerts your team instantly on Telegram with full conversation context.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-slate-800 text-xs font-medium text-purple-400">Instant Telegram Hand-off &rarr;</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Comparison Grid -->
+  <section class="py-20 bg-slate-900/40 border-t border-slate-800">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-extrabold text-white">Traditional Support vs. SupportPilot</h2>
+        <p class="mt-3 text-slate-400">See why companies replace high per-seat ticketing platforms with autonomous RAG infrastructure.</p>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-900/80">
+              <th class="py-4 px-6 text-sm font-semibold text-slate-300">Feature</th>
+              <th class="py-4 px-6 text-sm font-semibold text-slate-400">Traditional Support Desks</th>
+              <th class="py-4 px-6 text-sm font-semibold text-brand-400 bg-brand-950/30">SupportPilot</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-sm">
+            <tr>
+              <td class="py-4 px-6 font-medium text-slate-200">Response Latency</td>
+              <td class="py-4 px-6 text-slate-400">2 to 12 hours</td>
+              <td class="py-4 px-6 font-semibold text-emerald-400 bg-brand-950/20">Instant (&lt; 2 seconds)</td>
+            </tr>
+            <tr>
+              <td class="py-4 px-6 font-medium text-slate-200">Setup Time</td>
+              <td class="py-4 px-6 text-slate-400">Weeks of complex rule trees</td>
+              <td class="py-4 px-6 font-semibold text-emerald-400 bg-brand-950/20">5 minutes (upload your doc)</td>
+            </tr>
+            <tr>
+              <td class="py-4 px-6 font-medium text-slate-200">Edge-Case Handling</td>
+              <td class="py-4 px-6 text-slate-400">Silent ticket drops</td>
+              <td class="py-4 px-6 font-semibold text-emerald-400 bg-brand-950/20">Real-time Telegram escalation</td>
+            </tr>
+            <tr>
+              <td class="py-4 px-6 font-medium text-slate-200">Pricing Predictability</td>
+              <td class="py-4 px-6 text-slate-400">High per-seat pricing</td>
+              <td class="py-4 px-6 font-semibold text-emerald-400 bg-brand-950/20">Clear monthly token/ticket quotas</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 6: Bottom CTA Banner (High contrast button with clear caption) -->
+  <section class="py-20 relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="relative rounded-3xl bg-gradient-to-br from-brand-900 to-indigo-950 border border-brand-500/40 p-10 md:p-14 text-center overflow-hidden shadow-2xl">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Ready to automate your support backlog?</h2>
+        <p class="mt-4 text-slate-300 max-w-xl mx-auto text-base">
+          We are currently onboarding 5 companies for a 30-day white-glove pilot at zero cost.
+        </p>
+        <div class="mt-8 flex justify-center">
+          <a href="contact.html" class="inline-flex items-center justify-center gap-2 px-9 py-4 rounded-xl text-base font-bold text-slate-950 bg-white hover:bg-slate-100 shadow-2xl hover:scale-105 transition-all">
+            <span>Apply for Free Pilot</span>
+            <span>&rarr;</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Polished, High-Clarity Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950/90 py-12 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-white text-sm">
+          SP
+        </div>
+        <span class="text-lg font-bold text-white">Support<span class="text-brand-500">Pilot</span></span>
+      </div>
+
+      <div class="flex flex-wrap justify-center items-center gap-6 text-sm text-slate-400">
+        <a href="index.html" class="hover:text-white transition">Home</a>
+        <a href="how-it-works.html" class="hover:text-white transition">How It Works</a>
+        <a href="contact.html" class="hover:text-white transition">Contact Us</a>
+        <span class="hidden md:inline text-slate-700">|</span>
+        <a href="mailto:admin@auraaico.com" class="text-brand-400 hover:text-brand-300 font-medium transition">admin@auraaico.com</a>
+      </div>
+
+      <div class="text-xs text-slate-500">
+        &copy; 2026 SupportPilot. An Aura AI Co. Project.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       SUPPORTPILOT CHATBOT WIDGET (FLOATING BOTTOM RIGHT)
+       ========================================================================== -->
+  <div id="sp-chat-widget">
+    <!-- Floating Circular Trigger Button -->
+    <button id="sp-chat-toggle" onclick="spToggleChat()" aria-label="Open support chat">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </button>
+
+    <!-- Slide-up Chat Window Container -->
+    <div id="sp-chat-window" class="sp-hidden">
+      <!-- Window Header -->
+      <div class="sp-chat-header">
+        <div class="sp-header-info">
+          <div class="sp-avatar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+              <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="sp-title">SupportPilot – AI Assistant</h3>
+            <p class="sp-subtitle">Online</p>
+          </div>
+        </div>
+        <button class="sp-close-btn" onclick="spToggleChat()" aria-label="Close chat">✕</button>
+      </div>
+
+      <!-- Live Messages Feed -->
+      <div id="sp-chat-messages">
+        <div class="sp-message sp-bot">
+          Hi there! 👋 How can I help you today?
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="sp-chat-input-container">
+        <div class="sp-input-wrapper">
+          <input type="text" id="sp-chat-input" placeholder="Send a message..." onkeydown="if(event.key==='Enter') spSendMessage()" />
+          <button id="sp-send-btn" onclick="spSendMessage()" aria-label="Send message">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <div class="sp-footer-branding">
+          Powered by <strong>SupportPilot</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Script -->
+  <script>
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+
+    // Helper to open chat from any on-page CTA
+    function spOpenChat() {
+      const win = document.getElementById('sp-chat-window');
+      if (win) {
+        win.classList.remove('sp-hidden');
+        const input = document.getElementById('sp-chat-input');
+        if (input) input.focus();
+      }
+    }
+  </script>
+
+  <!-- Chatbot Logic Script (Loaded from same directory) -->
+  <script src="SupportPilot_CB_Main.js"></script>
+</body>
+</html>

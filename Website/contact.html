@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us & Request a Pilot | SupportPilot</title>
+  <meta name="description" content="Request a free 30-day white-glove pilot for SupportPilot autonomous RAG customer support infrastructure." />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#1e1b4b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Chatbot CSS (same folder) -->
+  <link rel="stylesheet" href="SupportPilot_CB_Main.css">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* ==========================================================================
+       SupportPilot Chatbot Embedded Styles (Guarantees styling in all environments)
+       ========================================================================== */
+    :root {
+      --sp-theme-color: #4f46e5;
+      --sp-theme-color-hover: #4338ca;
+      --sp-theme-color-light: #eef2ff;
+      --sp-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --sp-window-width: 380px;
+      --sp-window-height: 560px;
+      --sp-border-radius: 16px;
+      --sp-bg-light: #f8fafc;
+      --sp-border-color: #e2e8f0;
+      --sp-text-dark: #0f172a;
+    }
+
+    #sp-chat-widget {
+      font-family: var(--sp-font-family);
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999999;
+    }
+
+    #sp-chat-toggle {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.45);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #sp-chat-toggle:hover {
+      transform: scale(1.06);
+      background: var(--sp-theme-color-hover);
+      box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55);
+    }
+
+    #sp-chat-window {
+      position: fixed;
+      bottom: 96px;
+      right: 24px;
+      width: var(--sp-window-width);
+      height: var(--sp-window-height);
+      max-height: calc(100vh - 120px);
+      background: #ffffff;
+      border-radius: var(--sp-border-radius);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid var(--sp-border-color);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 999999;
+    }
+
+    #sp-chat-window.sp-hidden {
+      display: none !important;
+    }
+
+    .sp-chat-header {
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sp-header-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sp-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sp-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin: 0;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .sp-subtitle {
+      font-size: 11px;
+      margin: 3px 0 0 0;
+      opacity: 0.85;
+      color: #e0e7ff;
+    }
+
+    .sp-close-btn {
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.85;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .sp-close-btn:hover {
+      opacity: 1;
+    }
+
+    #sp-chat-messages {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      background: var(--sp-bg-light);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .sp-message {
+      max-width: 84%;
+      padding: 11px 15px;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .sp-message.sp-bot {
+      background: #ffffff;
+      color: var(--sp-text-dark);
+      border: 1px solid var(--sp-border-color);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .sp-message.sp-user {
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 2px 5px rgba(79, 70, 229, 0.25);
+    }
+
+    .sp-chat-input-container {
+      padding: 12px 16px;
+      background: #ffffff;
+      border-top: 1px solid var(--sp-border-color);
+    }
+
+    .sp-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid var(--sp-border-color);
+      border-radius: 24px;
+      padding: 4px 6px 4px 14px;
+    }
+
+    .sp-input-wrapper input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 13.5px;
+      outline: none;
+      color: var(--sp-text-dark);
+      font-family: inherit;
+    }
+
+    #sp-send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--sp-theme-color);
+      color: #ffffff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    #sp-send-btn:hover {
+      background: var(--sp-theme-color-hover);
+    }
+
+    .sp-footer-branding {
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 8px;
+    }
+
+    .sp-typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .sp-typing-indicator span {
+      width: 6px;
+      height: 6px;
+      background-color: var(--sp-theme-color);
+      border-radius: 50%;
+      display: inline-block;
+      animation: spPulseDots 1.4s infinite ease-in-out both;
+    }
+
+    .sp-typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .sp-typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    @keyframes spPulseDots {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1.1); opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      #sp-chat-window {
+        width: calc(100vw - 32px);
+        right: 16px;
+        bottom: 84px;
+      }
+      #sp-chat-widget {
+        bottom: 16px;
+        right: 16px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased selection:bg-brand-500 selection:text-white relative">
+
+  <!-- Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center font-bold text-white shadow-lg shadow-brand-500/30">
+          SP
+        </div>
+        <span class="text-xl font-bold tracking-tight text-white">Support<span class="text-brand-500">Pilot</span></span>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+        <a href="index.html#features" class="hover:text-white transition">Features</a>
+        <a href="how-it-works.html" class="hover:text-white transition">How It Works</a>
+        <a href="contact.html" class="text-white font-semibold">Contact</a>
+      </nav>
+
+      <div class="hidden md:flex items-center gap-4">
+        <a href="contact.html" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-600 hover:bg-brand-500 shadow-md shadow-brand-600/30 transition">
+          Start Free Pilot
+        </a>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button id="mobileMenuBtn" class="md:hidden p-2 text-slate-400 hover:text-white focus:outline-none" aria-label="Toggle menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+      </button>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobileMenu" class="hidden md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-3 pb-5 space-y-3">
+      <a href="index.html#features" class="block text-slate-300 hover:text-white py-1">Features</a>
+      <a href="how-it-works.html" class="block text-slate-300 hover:text-white py-1">How It Works</a>
+      <a href="contact.html" class="block text-white font-semibold py-1">Contact</a>
+      <a href="contact.html" class="block text-center mt-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-brand-600">Start Free Pilot</a>
+    </div>
+  </header>
+
+  <!-- Section 1 & 2 & 3: Content and Form -->
+  <main class="py-16 md:py-24">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        
+        <!-- Left: Context & Details -->
+        <div class="lg:col-span-5 space-y-8">
+          <div>
+            <span class="text-brand-400 text-sm font-bold tracking-widest uppercase">Get in Touch</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Request a Custom Pilot</h1>
+            <p class="text-slate-400 mt-4 leading-relaxed">
+              Tell us about your business and support volume. We’ll set up a tailored prototype using your documentation within 24 business hours.
+            </p>
+          </div>
+
+          <div class="space-y-6 pt-6 border-t border-slate-800">
+            <div class="flex items-start gap-4">
+              <div class="p-3 rounded-lg bg-brand-500/10 text-brand-400 border border-brand-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+              </div>
+              <div>
+                <h2 class="text-sm font-semibold text-white">Direct Support Email</h2>
+                <a href="mailto:admin@auraaico.com" class="text-slate-300 hover:text-brand-400 transition text-sm">admin@auraaico.com</a>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="p-3 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <div>
+                <h2 class="text-sm font-semibold text-white">Response Commitment</h2>
+                <p class="text-slate-400 text-sm">All inquiries receive a response within 24 business hours.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="p-3 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              </div>
+              <div>
+                <h2 class="text-sm font-semibold text-white">Pilot Program Offer</h2>
+                <p class="text-slate-400 text-sm">Complimentary 30-day trial with full setup assistance and direct Telegram channel escalation.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Contact Form -->
+        <div class="lg:col-span-7">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 sm:p-10 shadow-xl relative">
+            
+            <form id="pilotForm" action="https://supportpilot.auraaico.com/webhook/contact-form" method="POST" class="space-y-6">
+              <input type="hidden" name="recipient_email" value="admin@auraaico.com" />
+
+              <div>
+                <label for="fullName" class="block text-sm font-medium text-slate-200 mb-2">Full Name *</label>
+                <input type="text" id="fullName" name="fullName" required placeholder="Jane Doe"
+                  class="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition text-sm" />
+              </div>
+
+              <div>
+                <label for="workEmail" class="block text-sm font-medium text-slate-200 mb-2">Work Email *</label>
+                <input type="email" id="workEmail" name="workEmail" required placeholder="jane@company.com"
+                  class="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition text-sm" />
+              </div>
+
+              <div>
+                <label for="companyName" class="block text-sm font-medium text-slate-200 mb-2">Company Name / Website URL *</label>
+                <input type="text" id="companyName" name="companyName" required placeholder="Acme Inc. / https://acme.com"
+                  class="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition text-sm" />
+              </div>
+
+              <div>
+                <label for="monthlyTickets" class="block text-sm font-medium text-slate-200 mb-2">Estimated Monthly Tickets / Inquiries *</label>
+                <select id="monthlyTickets" name="monthlyTickets" required
+                  class="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-brand-500 transition text-sm">
+                  <option value="<200">&lt; 200 tickets/month</option>
+                  <option value="200–1,000">200 – 1,000 tickets/month</option>
+                  <option value="1,000–5,000">1,000 – 5,000 tickets/month</option>
+                  <option value="5,000+">5,000+ tickets/month</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="message" class="block text-sm font-medium text-slate-200 mb-2">Message / Pain Points</label>
+                <textarea id="message" name="message" rows="4" placeholder="What are your most common repetitive support questions?"
+                  class="w-full px-4 py-3 rounded-lg bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:border-brand-500 transition text-sm"></textarea>
+              </div>
+
+              <button type="submit" id="submitBtn" class="w-full py-3.5 rounded-lg text-base font-semibold text-white bg-brand-600 hover:bg-brand-500 shadow-xl shadow-brand-600/30 transition flex items-center justify-center gap-2">
+                <span>Submit Pilot Request</span>
+              </button>
+
+              <div id="formStatus" class="hidden text-sm text-center py-2 rounded-lg"></div>
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Polished Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950/90 py-12 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center font-bold text-white text-sm">
+          SP
+        </div>
+        <span class="text-lg font-bold text-white">Support<span class="text-brand-500">Pilot</span></span>
+      </div>
+
+      <div class="flex flex-wrap justify-center items-center gap-6 text-sm text-slate-400">
+        <a href="index.html" class="hover:text-white transition">Home</a>
+        <a href="how-it-works.html" class="hover:text-white transition">How It Works</a>
+        <a href="contact.html" class="text-white font-medium transition">Contact Us</a>
+        <span class="hidden md:inline text-slate-700">|</span>
+        <a href="mailto:admin@auraaico.com" class="text-brand-400 hover:text-brand-300 font-medium transition">admin@auraaico.com</a>
+      </div>
+
+      <div class="text-xs text-slate-500">
+        &copy; 2026 SupportPilot. An Aura AI Co. Project.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       SUPPORTPILOT CHATBOT WIDGET (FLOATING BOTTOM RIGHT)
+       ========================================================================== -->
+  <div id="sp-chat-widget">
+    <!-- Floating Circular Trigger Button -->
+    <button id="sp-chat-toggle" onclick="spToggleChat()" aria-label="Open support chat">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+      </svg>
+    </button>
+
+    <!-- Slide-up Chat Window Container -->
+    <div id="sp-chat-window" class="sp-hidden">
+      <!-- Window Header -->
+      <div class="sp-chat-header">
+        <div class="sp-header-info">
+          <div class="sp-avatar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+              <path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="sp-title">SupportPilot – AI Assistant</h3>
+            <p class="sp-subtitle">Online</p>
+          </div>
+        </div>
+        <button class="sp-close-btn" onclick="spToggleChat()" aria-label="Close chat">✕</button>
+      </div>
+
+      <!-- Live Messages Feed -->
+      <div id="sp-chat-messages">
+        <div class="sp-message sp-bot">
+          Hi there! 👋 How can I help you today?
+        </div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="sp-chat-input-container">
+        <div class="sp-input-wrapper">
+          <input type="text" id="sp-chat-input" placeholder="Send a message..." onkeydown="if(event.key==='Enter') spSendMessage()" />
+          <button id="sp-send-btn" onclick="spSendMessage()" aria-label="Send message">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        <div class="sp-footer-branding">
+          Powered by <strong>SupportPilot</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Script & Form Submit -->
+  <script>
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+      document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+
+    const form = document.getElementById('pilotForm');
+    const statusDiv = document.getElementById('formStatus');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Submitting...</span>';
+      statusDiv.className = 'text-sm text-center py-2 rounded-lg text-slate-300';
+      statusDiv.textContent = 'Transmitting your pilot request...';
+      statusDiv.classList.remove('hidden');
+
+      const formData = new FormData(form);
+      const payload = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          statusDiv.className = 'text-sm text-center py-2 rounded-lg text-emerald-400 bg-emerald-500/10 border border-emerald-500/20';
+          statusDiv.textContent = 'Pilot request submitted successfully! We will contact you within 24 hours.';
+          form.reset();
+        } else {
+          throw new Error('Submission failed');
+        }
+      } catch (err) {
+        statusDiv.className = 'text-sm text-center py-2 rounded-lg text-rose-400 bg-rose-500/10 border border-rose-500/20';
+        statusDiv.textContent = 'Could not submit automatically. Please email admin@auraaico.com directly.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Submit Pilot Request</span>';
+      }
+    });
+  </script>
+
+  <!-- Chatbot Logic Script (same folder) -->
+  <script src="SupportPilot_CB_Main.js"></script>
+</body>
+</html>

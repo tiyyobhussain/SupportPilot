@@ -1,0 +1,6 @@
+﻿Database/
+Backup/
+Workflow Json Files/
+*.json
+*.sql
+*.env
